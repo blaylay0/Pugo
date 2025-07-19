@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Калейдоскоп Прикол</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            overflow: hidden;
+            font-family: monospace;
+            color: lime;
+            font-size: 24px;
+            text-align: center;
+        }
+        .clone {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            pointer-events: none;
+        }
+        #main {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            transform: translate(-50%, -50%);
+        }
+        #message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <img id="main" src="2002.png" style="display: none;">
+    <div id="message">Ты слишком глубоко...</div>
+    <audio id="virus" src="Virus.mp3"></audio>
+    <audio id="r1" src="r1.mp3"></audio>
+
+    <script>
+        const main = document.getElementById("main");
+        const virus = document.getElementById("virus");
+        const r1 = document.getElementById("r1");
+        const message = document.getElementById("message");
+
+        const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function start() {
+            await wait(4000);
+            main.style.display = "block";
+            await wait(4000);
+            virus.play();
+            await wait(1000);
+
+            // Быстрая анимация рта (7 сек)
+            let count = 0;
+            const frames = ["2002.png", "2003.png"];
+            const swap = setInterval(() => {
+                main.src = frames[count % 2];
+                count++;
+                if (count >= 70) {
+                    clearInterval(swap);
+                    main.src = "2002.png";
+                    startKaleidoscope();
+                    r1.play();
+                }
+            }, 100);
+        }
+
+        function startKaleidoscope() {
+            let angle = 0;
+            const colors = ["#FF00FF", "#00FFFF", "#FFFF00", "#FF0000", "#00FF00", "#0000FF", "#FFFFFF"];
+            let colorIndex = 0;
+            let clones = [];
+
+            const createClones = () => {
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const radius = 200;
+                const count = 12;
+                for (let i = 0; i < count; i++) {
+                    const clone = document.createElement("img");
+                    clone.src = "2002.png";
+                    clone.className = "clone";
+                    document.body.appendChild(clone);
+                    clones.push(clone);
+                }
+
+                const interval = setInterval(() => {
+                    angle += 0.1;
+                    colorIndex++;
+                    document.body.style.backgroundColor = colors[colorIndex % colors.length];
+
+                    clones.forEach((clone, i) => {
+                        const theta = angle + (i * (2 * Math.PI / clones.length));
+                        const x = centerX + radius * Math.cos(theta) - 50;
+                        const y = centerY + radius * Math.sin(theta) - 50;
+                        clone.style.left = `${x}px`;
+                        clone.style.top = `${y}px`;
+                        clone.style.transform = `rotate(${angle * 30}deg)`;
+                    });
+                }, 50);
+
+                r1.onended = () => {
+                    clearInterval(interval);
+                    main.style.display = "none";
+                    clones.forEach(c => c.remove());
+                    document.body.style.backgroundColor = "black";
+                    message.style.display = "block";
+                };
+            };
+
+            createClones();
+        }
+
+        window.onload = start;
+    </script>
+</body>
+</html>
